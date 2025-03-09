@@ -1,0 +1,999 @@
+org $008335		;File Select Tilemap Transfer Source
+lda #$00A9
+
+;org $0089C2
+;;free space, $1E bytes
+;BGFade:
+;rep #$30
+;ldx #$0040
+;lda #$00C0
+;jsr $EDC5
+;ldx #$0040
+;lda #$00C0
+;jsr $EDC5
+;sep #$30
+;lda $7EC007
+;dec
+;jmp BGFade2
+
+;org $0098AB
+;BGFade2:
+;+ sta $7EC007
+;inc $15
+;rtl
+;;free space, $15 bytes
+
+org $008D02		;Text VRAM Write
+ldx #$07E0
+
+org $009381		;VRAMBuild reference
+db BGMap_CopyPlayerText&$FF
+db BGMap_KillPLayerText&$FF
+org $00938A		;VRAMBuild reference
+db (BGMap_CopyPlayerText>>8)&$FF
+db (BGMap_KillPLayerText>>8)&$FF
+org $009393		;VRAMBuild reference
+db (BGMap_CopyPlayerText>>16)&$FF
+db (BGMap_KillPLayerText>>16)&$FF
+
+;org $00CFD6
+;db (GFX_Pretitle>>16)&$FF
+;db (GFX_TitleZ>>16)&$FF
+;org $00CFDD
+;db (GFX_TitleBG>>16)&$FF
+;db (GFX_TitleBG2>>16)&$FF
+;org $00D000
+;db (GFX_Title>>16)&$FF
+;db (GFX_Subtitle>>16)&$FF
+;org $00D065
+;db (GFX_Sword>>16)&$FF
+
+;org $00D0B5
+;db (GFX_Pretitle>>8)&$FF
+;db (GFX_TitleZ>>8)&$FF
+;org $00D0BC
+;db (GFX_TitleBG>>8)&$FF
+;db (GFX_TitleBG2>>8)&$FF
+;org $00D0DF
+;db (GFX_Title>>8)&$FF
+;db (GFX_Subtitle>>8)&$FF
+;org $00D144
+;db (GFX_Sword>>8)&$FF
+
+;org $00D194
+;db GFX_Pretitle&$FF
+;db GFX_TitleZ&$FF
+;org $00D19B
+;db GFX_TitleBG&$FF
+;db GFX_TitleBG2&$FF
+;org $00D1BE
+;db GFX_Title&$FF
+;db GFX_Subtitle&$FF
+;org $00D223
+;db GFX_Sword&$FF
+
+;org $00DD8B	;? (sword)
+;db $32
+
+;org $00DF1B	;?
+;db $17
+;org $00E1CB ;? (pretitle)
+;db $16
+;org $00E1CD	;?
+;db $1D
+;org $00E1D2 ;?
+;db $1E
+
+org $00E557		;File Select Tile Transfer
+lda #$0E
+org $00E563
+lda #$8000
+org $00E568
+ldx #$07FF
+
+org $00E5A0		;Font Data Location for Transfer
+lda #$0E
+org $00E5AC
+lda #$8000
+
+
+
+org $028022		;Unused DialoguePointerTableWrite (not)
+nop
+nop
+nop
+nop
+
+org $028579		;ATD Omission, Ending Sequence
+nop
+nop
+nop
+nop
+
+
+
+org $09F430		;ATD Omission, Game Over
+nop
+nop
+nop
+nop
+
+
+
+org $0CC0AB
+A0CC0AB:
+lda #$01
+sta $0128
+rts
+
+org $0CC0B1		;fit
+History_Timer1SetFit:
+rep #$20
+lda #$0210
+--- sta $64
+sep #$20
+rts
+History_Timer2SetFit:
+rep #$20
+lda #$0240
+bra ---
+History_DecTimerFit:
+rep #$20
+lda $64
+beq +
+dec $64
++ rts
+History_TimerCheckFit:
+jsr $F6B5
+lda $65
+xba
+rts
+FileSelect_BG:
+phb
+phk
+plb
+jsl FileSelectGeneral_BGphb
+ldx #$26
+- lda BGMap_FileSelectMain, X
+sta $104A, X
+dex
+bpl -
+plb
+rtl
+sta14inc11:
+sta $14
+inc $11
+lda #$0F
+rts
+NameRegister_SplitWrite:
+tay
+txa
+bit #$0008
+bne +
+tya
+sta $7003D9,X
++ tya
+sta $700403,X
+rts
+;1 byte left
+
+;org $0CC119
+;dl $0CC137,$0CC17C,$0CC302,$0CC3D2
+;dl $0CC3D2,$0CC26B,TitleSword,TitleBG
+;dl $0CC2A5
+
+org $0CC184		;Title Sequence Step Omission
+db $0B	;step count
+org $0CC1A6
+db $71,$D2,$00, $63,$D4,$00	;steps
+
+org $0CC2B6
+TitlePressA:
+
+org $0CC3D2
+TitleTriforce:
+
+org $0CCC67		;FileSelect Fairy Positions
+db $4A,$6A,$8A,$A7,$B7
+
+org $0CCC7A		;FileSelect Mode Inclusion
+db $8C,$CC,$0C,$91,$CD,$0C
+dl FileSelect_BG
+db $AE,$CD,$0C,$BA,$CD,$0C,$C6,$CD,$0C
+jsr FileSelectStep1_Fix
+nop
+
+org $0CCCAA		;palette index
+lda #$00
+;org $0CCDD5 nop'd?
+;ldx #$00FD
+
+org $0CCDBA
+jsr FileSelectFiles
+;free: $0CCDD0 - $0CCDD7, 8 bytes
+org $0CCDD8
+FileSelectFiles:
+phb
+phk
+plb
+rep #$30
+jsr FileSelect_FileBGFrame
+nop
+sep #$30
+
+org $0CCF53		;General BG Submode Inclusion
+dl $0CCD98,KillPlayer_BG,CopyPlayer1,$0CCF7C,$0CCF97,$0CCFAE
+CopyPlayer1:
+lda #$07
+Unblank:
+jsr sta14inc11
+
+org $0CCF84		;WHICH? flash
+cmp #$03
+org $0CCF9F		;TO WHICH? flash
+cmp #$04
+org $0CCFA9
+jsr TOWHICHFlash
+org $0CCFB7
+dw $0004,$0014
+org $0CCFC0
+lda #$18A9
+ldy #$0006
+org $0CCFDE		;fairy position
+db $B7
+org $0CCFDF
+BGMap_CopyPlayer2:
+incbin "BGMap CopyPlayer2.inc"
+org $0CD028		;CopyPlayer BGMap Frame Reference
+dw $0028,$0058,$0088
+org $0CD030
+ldx #$00B0
+org $0CD036
+lda BGMap_CopyPlayerFiles,X
+org $0CD057
+lda #$0008
+org $0CD05C
+lda $700403,X
+org $0CD061
+adc #$1800
+org $0CD06B
+sta $101A,Y
+org $0CD072
+nop
+nop
+org $0CD0F6
+sta $1021,X
+org $0CD108
+sta $1022,X
+sta $1028,X
+org $0CD110
+sta $1023,X
+org $0CD116
+sta $1029,X
+org $0CD12A
+BGMap_CopyPlayerOK:
+incbin "BGMap CopyPlayerOK.inc"
+;free: $0CD15B - $0CD162, $8 bytes
+org $0CD163		;fairy position
+db $83,$83
+org $0CD168		;fairy position
+db $B7
+org $0CD169		;CopyPlayer-2 BGMap Frame Reference
+dw $0030,$0060
+dw $18E7,$18E8,$18E9
+org $0CD184
+ldx #$008C
+org $0CD189
+lda BGMap_CopyPlayerFiles2,X
+org $0CD1B3
+sta $101A,Y
+org $0CD1BA
+lda #$0008
+org $0CD1C4
+lda $700403,X
+org $0CD1C9
+adc #$1800
+org $0CD1D3
+sta $101E,Y
+org $0CD1DA
+nop
+nop
+org $0CD23D		;COPY OK
+ldx #$30
+org $0CD242
+sta $102E,X
+org $0CD24C
+lda #$B3
+sta $102F
+org $0CD254
+sta $1035
+org $0CD261		;COPY OK Fairy
+db $A7,$B7
+
+org $0CD30B		;KillPlayer Fairy Position
+db $B7
+org $0CD310
+db $A9,$00
+org $0CD316
+db $A9,$00
+org $0CD31C
+db $A9,$00
+org $0CD322
+db $A9,$00
+org $0CD324
+incbin "BGMap KILLOK.inc"
+org $0CD34A
+db $A9,$00
+org $0CD34E
+db $A9,$00
+org $0CD352
+db $A9,$00,$A9,$00
+org $0CD358
+db $A9,$18
+org $0CD461		;Select Quit
+jsr KillPlayer_SelectQuit
+nop
+org $0CD365		;KillPlayer Mode Inclusion & Mod
+dl $0CCD98,KillPlayer_BG,KillPlayer_TextBG
+dl KillPlayer_Proceed,KillPlayer_Select
+KillPlayer_BG:
+phb
+phk
+plb
+jmp FileSelectGeneral_BG
+KillPlayer_TextBG:
+lda #$08
+jmp Unblank
+KillPlayer_Proceed:
+phb
+phk
+plb
+lda $C8
+cmp #$03
+bcs +
+sta $0B9D
++ jsr KillPlayer_FileBG	;fix
+- jmp $CF91
+KillPlayer_Select:
+phb
+phk
+plb
+jsr $D46F
+bra -
+KillPlayer_FileBG:
+rep #$30
+jsr FileSelect_FileBGFrame
+nop
+nop
+nop
+org $0CD46E		;KillPlayer Fairy Position
+db $B7
+
+org $0CD50C		;name offsets, heart offsets
+db $08,$00, $64,$00
+db $C0,$00, $1A,$00
+db $76,$00, $D2,$00
+
+org $0CD527		;FileSelectNames Name Length
+lda #$0008
+org $0CD52C
+lda $700403,X
+org $0CD531		;file select name stuff..
+adc #$1800
+org $0CD53B		;FileSelectNames Offset
+sta $1030,Y
+org $0CD542		;name width
+nop
+nop
+org $0CD55F
+lda #$0520
+org $0CD571
+adc #$002E
+
+org $0CD768		;initial selection
+jsr A0CC0AB
+sta $0B15
+lda #$04
+sta $0B10
+stz $0B12
+org $0CD77C		;cursor pos ver
+lda #$4B
+org $0CD783		;cursor pos hor
+lda #$01DC
+
+org $0CD7B8		;name blank
+lda $0200
+jsr NameRegister_NameBlank
+;<--->
+clc
+adc #$002A
+sta $00
+tya
+ldy #$000E
+- sta [$00],Y
+dey
+dey
+bpl -
+
+org $0CD7DF		;input table
+NameRegister_InputTable:
+incbin "NameRegister InputTable.inc"
+
+org $0CD96B
+db $3B,$4B,$5B,$6B,$7B,$8B,$9B,$AB,$BB,$CB
+
+org $0CDA79
+lda $0CDC82,X
+
+org $0CDAC7
+and #$00FF
+
+org $0CDAEE		;name length
+and #$07
+
+org $0CDB03		;8-char split write
+pha
+org $0CDB11
+jsr NameRegister_SplitWrite
+ply
+
+org $0CDB25		;nameregister empty check
+lda $700403,X
+cmp #$00A9
+org $0CDB30
+cmp #$0008
+
+org $0CDC82
+db $A0,$A8,$B0,$B8,$C0,$C8,$D0,$D8
+
+org $0CDC8D		;diplay length
+tya
+lsr
+clc
+adc #$6074
+
+org $0CDCA9
+lda $700403,X
+
+org $0CDCAD		;name tile colour
+ora #$1800
+
+org $0CDDE8		;File Select BG Text
+incbin "BGMap FileSelectText.inc"
+org $0CDED1		;File Select General BG Frame
+BGMap_FileSelectGeneral:
+incbin "BGMap FileSelectGeneral.inc"
+BGMap_FileSelectMain:
+incbin "BGMap FileSelectMain.inc"
+BGMap_KillPLayerText:
+incbin "BGMap KillPlayerText.inc"
+BGMap_CopyPlayerText:
+incbin "BGMap CopyPlayerText.inc"
+incbin "BGMap CopyPlayer.inc"
+BGMap_CopyPlayerFiles:
+incbin "BGMap CopyPlayerFiles.inc"
+;BGMap_CopyPlayer2blank:		;!!! not used??
+;incbin "BGMap CopyPlayer2blank.inc"
+BGMap_CopyPlayerFiles2:
+incbin "BGMap CopyPlayerFiles2.inc"
+TOWHICHFlashData:
+dw $0004,$001A
+TOWHICHFlash:
+rep #$30
+ldx #$0002
+lda #$18A9
+-- ldy #$0009
+sty $00
+ldy TOWHICHFlashData,X
+- sta $1002,Y
+iny
+iny
+dec $00
+bne -
+dex
+dex
+bpl --
+sep #$30
+rts
+;free: $0CDED1 (?) - $0CDFFD, $12D (?) bytes
+
+org $0CE0B7
+NameRegister_NameBlank:
+;---<
+clc
+adc #$03D9
+sta $00
+lda #$0070
+sta $02
+lda #$00A9
+ldy #$0006
+- sta [$00],Y
+dey
+dey
+bpl -
+tay
+lda $00
+rts;>---
+KillPlayer_SelectQuit:
+sta $B0
+lda #$01
+sta $C8
+rts
+
+org $0CE415		;Name Registration
+NameRegister_BG:
+incbin "BGMap NameRegister.inc"
+
+;free: $0CE8F6 - $0CECED, $38F bytes!!!
+;org $0CE8F6
+;TitleBG:
+;jsr TitleSwordStuff
+;jsl TitleTriforce
+;lda $7EC007
+;beq +
+;lda $1A
+;lsr
+;bcc ++
+;jml BGFade
+;+ lda $F6
+;and #$C0
+;ora $F4
+;and #$D0
+;beq +
+;jmp TitlePressA
+;+ dec $B0
+;bne ++
+;inc $11
+;++ rtl
+;TitleSword:
+;jsl TitleTriforce
+;stz $1F00
+;stz $012A
+;jsr TitleSwordStuff
+;dec $B0
+;bne +
+;inc $11
+;lda #$02
+;sta $99
+;lda #$22
+;sta $9A
+;lda #$1F
+;sta $7EC007
+;lda #$02
+;sta $1D
+;+ rtl
+;TitleSwordStuffData1:
+;db $00,$02,$20,$22,$04,$06,$08,$0a
+;db $0c,$0e
+;TitleSwordStuffData2:
+;db $40,$40,$30,$50,$40,$40,$40,$40
+;db $40,$40
+;TitleSwordStuffData3:
+;db $10,$00,$20,$00,$28,$00,$28,$00
+;db $30,$00
+;TitleSwordStuffData4:
+;db $40,$00,$50,$00,$60,$00,$70,$00
+;db $80,$00
+;TitleSwordStuff:
+;phb
+;phk
+;plb
+;lda $CA
+;beq +
+;dec $CA
+;+ jsl a9Cstuff
+;lda $0FF9
+;beq +++
+;and #$03
+;beq ++
+;ldx $D0
+;lda #$1F
+;ora $9C,X
+;sta $9C,X
+;inx
+;cpx #$03
+;bne +
+;ldx #$00
+;+ stx $D0
+;++ dec $0FF9
+;+++ ldy #$09
+;- tya
+;asl
+;asl
+;tax
+;lda #$02
+;sta $0A72,Y
+;lda TitleSwordStuffData1,Y
+;sta $094A,X
+;lda #$21
+;sta $094B,X
+;lda TitleSwordStuffData2,Y
+;sta $0948,X
+;phy
+;tya
+;asl
+;tay
+;rep #$20
+;lda $C8
+;clc
+;adc TitleSwordStuffData3,Y
+;sep #$20
+;xba
+;beq +
+;lda #$F8
+;xba
+;+ xba
+;sec
+;sbc #$08
+;sta $0949,X
+;ply
+;dey
+;bpl -
+;rep #$20
+;lda $C8
+;cmp #$001E
+;beq +++
+;ldy #$01
+;cmp #$FFBE
+;beq +
+;cmp #$000E
+;bne ++
+;stz $D0
+;ldx #$20
+;stx $0FF9
+;ldy #$2C
+;+ sty $012E
+;++ clc
+;adc #$0010
+;sta $C8
+;+++ sep #$20
+;ldx $CC
+;jmp (TitleSwordStuffSubs,X)
+;TitleSwordStuffSubs:
+;dw TitleSwordStuff0,TitleSwordStuff1,TitleSwordStuff2
+;TitleSwordStuff0:
+;lda $0FF9
+;bne +
+;rep #$20
+;lda $C8
+;cmp #$001E
+;sep #$20
+;bne +
+;inc $CC
+;inc $CC
+;+ plb
+;rts
+;TitleSwordStuff1Data1:
+;db $04,$04,$06,$06,$06,$04,$04
+;TitleSwordStuff1Data2:
+;db $28,$37,$27,$36,$27,$37,$28
+;TitleSwordStuff1:
+;ldx $CB
+;lda $CA
+;bne ++
+;dex
+;stx $CB
+;bpl +
+;stz $CB
+;lda #$02
+;sta $CA
+;inc $CC
+;inc $CC
+;bra +++
+;+ lda TitleSwordStuff1Data1,X
+;sta $CA
+;++ stz $0A70
+;lda #$44
+;sta $0940
+;lda #$43
+;sta $0941
+;lda #$25
+;sta $0943
+;lda TitleSwordStuff1Data2,X
+;sta $0942
+;+++ plb
+;rts
+;TitleSwordStuff2Data1:
+;db $26,$20,$24,$34
+;TitleSwordStuff2Data2:
+;db $25,$20,$35,$20
+;TitleSwordStuff2:
+;ldx $CB
+;cpx #$07
+;bcs ++
+;stz $0A70
+;stz $0A71
+;lda #$42
+;sta $0940
+;sta $0944
+;lda $CD
+;cmp #$50
+;bcc +
+;lda #$4F
+;+ clc
+;adc $C8
+;clc
+;adc #$31
+;sta $0941
+;clc
+;adc #$08
+;sta $0945
+;lda #$23
+;sta $0943
+;sta $0947
+;lda TitleSwordStuff2Data1
+;sta $0942
+;lda TitleSwordStuff2Data2
+;sta $0946
+;lda $CA
+;bne ++
+;lda $CD
+;clc
+;adc #$04
+;sta $CD
+;cmp #$04
+;beq +
+;cmp #$48
+;beq +
+;cmp #$4C
+;beq +
+;cmp #$58
+;bne ++
+;+ inc $CB
+;inc $CB
+;++ plb
+;rts
+
+org $0CEDBF		;History timers
+ldx #$1010
+
+org $0CEF19		;1 Set
+jsr History_Timer1SetFit
+nop
+
+org $0CEFAB		;2 Set
+jsr History_Timer2SetFit
+nop
+
+org $0CF046		;ATD Omission, History End
+nop
+nop
+nop
+nop
+
+org $0CF065		;Open up two subs for the title screen
+lda #$02
+
+org $0CF13A		;1 Check
+jsr History_TimerCheckFit
+lda $64
+
+org $0CF2D2		;2 Check
+jsr History_TimerCheckFit
+lda $64
+
+org $0CF6C7		;Decrement
+jsr History_DecTimerFit
+sep #$20
+nop
+;TAKES UP FREE SPACE
+
+org $0CF675		;ATD Omission, History Button Exit
+nop
+nop
+nop
+nop
+
+org $0CFD66		;Writing the BGMap manually
+FileSelect_FileBGFrame:
+ldx #$18E7
+lda #$1002
+sta $00
+lda #$6108
+clc
+-- adc #$0020
+ldy #$0000
+xba
+sta [$00],Y
+xba
+pha
+iny
+iny
+lda #$2900
+sta [$00],Y
+iny
+iny
+txa
+sta [$00],Y
+iny
+iny
+eor #$0010
+tax
+bit #$0010
+bne +
+inx
+pla
+adc #$0040
+pha
+lda #$1891
+sta [$00],Y
+iny
+iny
++ - lda #$18A9
+sta [$00],Y
+iny
+iny
+cpy #$002E
+bne -
+tya
+clc
+adc $00
+sta $00
+cmp #$110A
+pla
+bcc --
+lda #$FFFF
+sta [$00]
+rts
+FileSelectGeneral_BGphb:
+phb
+FileSelectGeneral_BG:
+ldx #$48
+- lda BGMap_FileSelectGeneral, X
+sta $1002, X
+dex
+bpl -
+inc $11
+jmp $CF91
+;taken: $0CFD66 - $0CFDCF, $6A bytes
+
+org $0CFF7B
+a9Cstuff:
+
+org $0CFFF8
+FileSelectStep1_Fix:
+jsl $00893D
+stz $012A
+rts
+;free taken $0CFFF8 - $0CFFFF, 8 bytes
+
+
+
+org $0E8000		;Font GFX
+incbin "data 0E8000.inc"
+SpecialCharMap:
+incbin "data 0E9000.inc"	;Dialogue(?)
+Table_SpecialCharacters:
+incbin "Table SpecialCharacters.inc"
+BGMap_Credits:
+incbin "BGMap Credits.inc"	;BG Map Credits
+;GFX_Sword:
+;incbin "GFX Sword.inc"
+;GFX_TitleBG:
+;incbin "GFX TitleBG.inc"
+;GFX_TitleZ:
+;incbin "GFX TitleZ.inc"
+;GFX_TitleBG2:
+;incbin "GFX TitleBG2.inc"
+
+org $0EE64D		;ATD Omission, Credits Sequence
+nop
+nop
+nop
+nop
+
+org $0EE7DC		;BG Map Credits Scores
+incbin "BGMap CreditsScores.inc"
+
+org $0EED32
+lda BGMap_Credits,Y
+
+org $0EEE53		;Code Dialogue Data Write
+WriteDialogueData:
+incbin "Code WriteDialogueData.inc"
+
+org $0EF19C		;--v
+jsr TextStartAlignment
+
+org $0EF220		;pointer fix
+db $8B,$F2,$1C,$F5,$38,$F5,$A6,$F5
+db $89,$F6,$89,$F6,$89,$F6,$89,$F6
+db $89,$F6,$A1,$F6,$0F,$F7,$15,$F7
+db $90,$F7,$00,$F8,$E7,$F8,$E7,$F8
+db $E7,$F8,$10,$F9,$33,$F9,$80,$F9
+db $94,$F9,$AB,$F9,$DB,$F9,$17,$FA
+db $4E,$FA,$79,$FA
+org $0EF298		;pointer fix
+db $B8,$F2,$D7,$F2,$17,$F5,$1B,$F5
+db $1B,$F5,$1B,$F5,$1B,$F5,$1B,$F5
+db $1B,$F5,$1B,$F5,$1B,$F5,$1B,$F5
+db $1B,$F5,$1B,$F5,$1B,$F5,$1B,$F5
+
+org $0EF2D7		;Code Text CPU Write
+TextCPUWrite:
+incbin "Code TextCPUWrite.inc"
+
+;free: $0EFA9E - $0EFBCB, $12E bytes
+
+;free: $0EFC38 - $0EFC46, $0F bytes
+org $0EFC44		;Text Alignment BGMap Stuff
+TextStartAlignment:
+rep #$30
+ldx #$0000
+org $0EFC54
+cpx #$00FC
+org $0EFC6F
+adc #$0021
+org $0EFC86
+lda #$2900
+org $0EFC8E
+lda #$0015
+
+;$0EFCB2 - $0EFD06, $55 bytes
+
+org $0EFD7E		;??? similar data to $1CF37A? unused?
+db $01,$01,$01,$01,$01,$02,$02,$02
+db $02,$01,$01,$01,$01,$01,$01,$01
+db $01,$02,$02,$02,$02,$01,$01,$01
+db $01,$01
+
+org $0EFDA0
+
+
+
+;org $129D5B
+;;$751 bytes free
+;GFX_Subtitle:
+;incbin "GFX Subtitle.inc"
+;;$1F1 bytes free
+
+;org $12B5EE
+;;$5B3 bytes free
+;GFX_Pretitle:
+;incbin "GFX Pretitle.inc"
+
+
+
+;org $13E0D7
+;;$6EB bytes free
+;GFX_Title:
+;incbin "GFX Title.inc"
+;;$18B bytes free
+
+
+
+org $1BD660		;file select palette
+Palette_FileSelect:
+incbin "Palette FileSelect.inc"
+
+
+
+org $1C8000		;Dialogue
+incbin "data 1C8000.inc"
+
+org $1CF37A		;Code Write Dialogue Pointer Table
+incbin "Code WriteDialoguePointerTable.inc"
+
+
+
+
+
+
+;FREE SPACE
+;$0CC290 - $0CC2A4, $13 bytes
+;$0CCDD0 - $0CCDD7, $8 bytes
+;$0CD15B - $0CD162, $8 bytes
+;$0CDC82 - $0CDC89, $8 bytes
+;$0CDF41 - $0CDFFD, $BD bytes
+;$0CE8F6 - $0CECED, $38F bytes!!!
+;$0E9000 - $0EB830
+;$0EFC38 - $0EFC46, $F bytes
+;$0EFA9E - $0EFBCB, $12E bytes
+;
+;FREE SPACE TAKEN
+;$0CC0AB - $0CC0DW, $54 bytes
+;$0CFD66 - $0CFDCF, $6A bytes
+;$0CFFF8 - $0CFFFF, $8 bytes
+;
+;FREE SPACE REMAINING
+;$0CFFF5 - $0CFFF7, 3 bytes
